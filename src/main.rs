@@ -1,13 +1,13 @@
 use anyhow::Context as _;
+use chrono::FixedOffset;
 use serenity::{
     async_trait,
     builder::{CreateEmbed, CreateMessage},
-    model::{gateway::Ready, id::ChannelId, voice::VoiceState, colour::Colour, Timestamp},
+    model::{colour::Colour, gateway::Ready, id::ChannelId, voice::VoiceState, Timestamp},
     prelude::*,
 };
 use shuttle_runtime::SecretStore;
 use std::sync::Arc;
-use chrono::FixedOffset;
 use tracing::info;
 
 #[derive(PartialEq)]
@@ -49,7 +49,7 @@ impl EventHandler for Handler {
             };
 
             if status == Status::Other {
-                    return;
+                return;
             }
 
             let user_name = if let Some(u) = &new.member {
@@ -65,22 +65,23 @@ impl EventHandler for Handler {
             let ch = ChannelId::new(data.log_channel_id);
 
             let embed = CreateEmbed::new()
-                .title("Voice Channel Notice")
+                .title("Notice")
                 .description({
                     if status == Status::Joined {
                         format!("**{}** がVCに入りました", user_name)
                     } else {
                         format!("**{}** がVCから抜けました", user_name)
-                    }})
+                    }
+                })
                 .color({
                     if status == Status::Joined {
-                    Colour(0x2aed24)
+                        Colour(0x2aed24)
                     } else {
-                    Colour(0xed2424)
-                    }})
+                        Colour(0xed2424)
+                    }
+                })
                 .timestamp(
-                    Timestamp::now()
-                    .with_timezone(&FixedOffset::east_opt(9 * 3600).unwrap())
+                    Timestamp::now().with_timezone(&FixedOffset::east_opt(9 * 3600).unwrap()),
                 );
             let message = CreateMessage::new().embed(embed);
 
@@ -108,14 +109,23 @@ async fn serenity(
 ) -> shuttle_serenity::ShuttleSerenity {
     // Get the discord token set in `Secrets.toml`
     let settings = Settings {
-        discord_token: secrets.get("DISCORD_TOKEN").context("'DISCORD_TOKEN' was not found")?,
-        guild_id: secrets.get("GUILD_ID").context("'GUILD_ID' was not found")?.parse().unwrap(),
-        log_channel_id: secrets.get("LOG_CHANNEL_ID").context("'LOG_CHANNEL_ID' was not found")?.parse().unwrap(),
+        discord_token: secrets
+            .get("DISCORD_TOKEN")
+            .context("'DISCORD_TOKEN' was not found")?,
+        guild_id: secrets
+            .get("GUILD_ID")
+            .context("'GUILD_ID' was not found")?
+            .parse()
+            .unwrap(),
+        log_channel_id: secrets
+            .get("LOG_CHANNEL_ID")
+            .context("'LOG_CHANNEL_ID' was not found")?
+            .parse()
+            .unwrap(),
     };
 
     // Set gateway intents, which decides what events the bot will be notified about
-    let intents = GatewayIntents::GUILDS
-        | GatewayIntents::GUILD_VOICE_STATES;
+    let intents = GatewayIntents::GUILDS | GatewayIntents::GUILD_VOICE_STATES;
 
     let client = Client::builder(&settings.discord_token, intents)
         .event_handler(Handler)
