@@ -1,0 +1,16 @@
+[package]
+name = "rust-callbot"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.66"
+shuttle-runtime = "0.47.0"
+shuttle-serenity = "0.47.0"
+tracing = "0.1.37"
+serde = {version = "1.0.209", features = ["derive"]}
+serde_json = "1.0.127"
+
+serenity = {version = "0.12.2", features = ["gateway", "framework", "standard_framework", "client", "model", "builder"]}
+chrono = "0.4.38"
+tokio = {version = "1.40.0", features = ["macros", "rt-multi-thread"]}
